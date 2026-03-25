@@ -1,5 +1,11 @@
 const bip39 = require("bip39")
 const HDWallet = require('ethereum-hdwallet')
+const nacl = require('tweetnacl')
+
+const {
+  pubkeyToEcdsaAddress,
+  pubkeyToEd25519Address,
+} = require('../src/bismuthSigners')
 
 describe("BIP39 Tests", () => {
   // https://github.com/trezor/python-mnemonic/blob/master/vectors.json
@@ -75,5 +81,20 @@ describe("Derive Tests Code 515 - DNA", () => {
     expect(derived10.getPrivateKey().toString('hex')).toBe("7adf1835200b00d99fe2cbb18d71151aef68425cbc4c2193e90aeeb24207efe6")
     expect(derived10.getPublicKey().toString('hex')).toBe("b1cd0c5287d1d1db1d5eef3c091dbbebb4a0185c939778e06629ab28dbd9e7e944c848ea7dc981b0c4aee4e260742573e2c7c523358a58f635884471b208d8bd")
     expect(derived10.getAddress().toString('hex')).toBe("b43d9d78c5b691348dd5632b97e670b51bf6704e")
+  })
+})
+
+describe("Bismuth address vectors", () => {
+  test("Build ECDSA address from public key", () => {
+    const publicKey = Buffer.from("0349746ba011ce72adea758e092159622baaa5009faca72ad4316792d828b7796a", 'hex')
+    expect(pubkeyToEcdsaAddress(publicKey)).toBe("Bis1SAk19HCWpDAThwFiaP9xA6zWjzsga7Hog")
+  })
+
+  test("Build ED25519 public key and address from seed", () => {
+    const privateKey = Buffer.from("e5b42f3c3fe02e161d42ff4707a174a5715b2badc7d4d3aebbea9081bd9123d5", 'hex')
+    const publicKey = Buffer.from(nacl.sign.keyPair.fromSeed(Uint8Array.from(privateKey)).publicKey)
+
+    expect(publicKey.toString('hex')).toBe("e58b14872b655aec960aa218af53de5c1a53395587f9610f9f048bee17db680a")
+    expect(pubkeyToEd25519Address(publicKey)).toBe("Bis13AbAZwMeY1C5GuFuVuVKLSjr3RdKG63g4CEx6epwSbhpuDU3rj")
   })
 })

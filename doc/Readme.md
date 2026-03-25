@@ -20,7 +20,7 @@ BIP 39 - BIP44 - SLIP-0044
 
 Coin type 209 was registered for Bismuth.
 
-Only ECDSA addresses are supported so far.
+ECDSA and ED25519 addresses are supported.
 
 ## Paper codes
 
@@ -34,6 +34,7 @@ WIP - left over from previous work, to be done.
 
 ## Changelog
 
+- v0.3: Add ED25519 deterministic address generation support
 - v0.2: Support for Chameleon wallet seeds (After september 2019) 
 - v0.1: Initial commit, fully functional ECDSA support 
 
@@ -44,4 +45,3 @@ Donations will help us maintain and improve this tool and other ones
 BIS Address
 Bis1ZQxwgiXemim9MSmPpVUP2ykBAJTy1ncea  
 ![](https://github.com/AngainorDev/BIS-Paper/raw/master/angainor-bis.png)
-

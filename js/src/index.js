@@ -3,8 +3,11 @@ console.log("Hello BIS!")
 const bip39 = require("bip39")
 const QRCode = require('easyqrcodejs')
 var hdkey = require('hdkey');
-var createHash = require('create-hash');
-var bs58check = require('bs58check');
+
+const {
+    deriveEcdsaWallet,
+    deriveEd25519Wallet,
+} = require('./bismuthSigners')
 
 import logo from './img/BIS_50_70b.png'
 import i512 from './img/BIS_512.png'
@@ -65,26 +68,6 @@ function getKeyRowWithQR(index, path, privateKey, publicKey, address, paperCode,
 }
 
 
-function pubkey_to_address(publicKey) {
-    const step1 = publicKey;
-    const step2 = createHash('sha256').update(step1).digest();
-    const step3 = createHash('rmd160').update(step2).digest();
-
-    var step4 = Buffer.allocUnsafe(21+2);
-    step4.writeUInt8(0x4f, 0);
-    step4.writeUInt8(0x54, 1);
-    step4.writeUInt8(0x5b, 2);
-    //var step4 = Buffer.allocUnsafe(21);
-    //step4.writeUInt8(0x00, 0);
-
-    step3.copy(step4, 3); //step4 now holds the extended RIPMD-160 result
-    //step3.copy(step4, 1);
-    const step9 = bs58check.encode(step4);
-    if (verbose) console.log('Base58Check: ' + step9);
-    return step9;
-}
-
-
 function generate_addresses() {
     const mnemonic = document.querySelector("#BIP39-input").value.trim()
     const password = document.querySelector("#BIP39-pass").value.trim()
@@ -109,14 +92,7 @@ function generate_addresses() {
     //console.log('Seed hex: ' + seed.toString('hex'));
 
     const root = hdkey.fromMasterSeed(seed);
-    //root.privateKey = seed
-    //const root = hdkey.fromExtendedKey("xprv9ydRptzPhdNud67iHrKp6zdTivxFEciurMfM1GVEByQhR6gDqBAJZMgrv224Mv8nKtkxFt7PXzSjC7ZHFox19Esh5pH6R3ZDrhT989FFVCm");
-    //console.log(root)
-    var address =  pubkey_to_address(root.publicKey);
-    //if (verbose) console.log('root addr: ' + address);
-
-    const masterPrivateKey = root.privateKey.toString('hex');
-    if (verbose) console.log('masterPrivateKey: ' + masterPrivateKey);
+    if (verbose) console.log('masterPrivateKey: ' + root.privateKey.toString('hex'));
 
     const count = parseInt(document.querySelector("#BIP39-count").value, 10)
     const wrapper = document.querySelector("#addresses")
@@ -133,20 +109,24 @@ function generate_addresses() {
 
 
     for (i=0; i<count; i++) {
-        // default ecdsa
-        path = `m/44'/209'/0'/0/` + i.toString()
-        if (chameleon2) {
-            path = `m/44'/0'/0'/0/` + i.toString()
+        let wallet
+        if (ed25519) {
+            path = `m/44'/209'/0'/0'/` + i.toString() + `'`
+            wallet = deriveEd25519Wallet(seed, path)
+        } else {
+            path = `m/44'/209'/0'/0/` + i.toString()
+            if (chameleon2) {
+                path = `m/44'/0'/0'/0/` + i.toString()
+            }
+            wallet = deriveEcdsaWallet(root, path)
         }
         if (verbose) console.log("path "+path)
-        const derived = root.derive(path);
-        const papercode = bip39.entropyToMnemonic(derived.privateKey.toString('hex'))
-        const bis_address =  pubkey_to_address(derived.publicKey);
-        content += getKeyRowWithQR(i, path, derived.privateKey.toString('hex'),
-                             derived.publicKey.toString('hex'), bis_address,
+        const papercode = bip39.entropyToMnemonic(wallet.privateKey.toString('hex'))
+        content += getKeyRowWithQR(i, path, wallet.privateKey.toString('hex'),
+                             wallet.publicKey.toString('hex'), wallet.address,
                              papercode, extraClass);
 
-        ids.push(bis_address)
+        ids.push(wallet.address)
         if (extraClass =='') {extraClass = 'thead-light'} else {extraClass = ''}
     }
     wrapper.innerHTML = content
@@ -185,4 +165,3 @@ document.querySelector("#generate_mnemonic12").addEventListener("click", generat
 document.querySelector("#generate_mnemonic24").addEventListener("click", generate_mnemonic24)
 document.querySelector("#generate_addresses").addEventListener("click", generate_addresses)
 document.querySelector("#generate_options").addEventListener("click", generate_options)
-

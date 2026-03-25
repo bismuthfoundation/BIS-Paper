@@ -1,10 +1,11 @@
 
 const QRCode = require('easyqrcodejs')
 const bip39 = require("bip39")
-var hdkey = require('hdkey');
-var createHash = require('create-hash');
-var bs58check = require('bs58check');
 
+const {
+    privateKeyToEcdsaWallet,
+    privateKeyToEd25519Wallet,
+} = require('./bismuthSigners')
 
 import logo from './img/BIS_64.png'
 import logo2 from './img/BIS_64.png'
@@ -70,25 +71,10 @@ function mapToPaper(map, type='') {
 }
 
 
-function privkey_to_address(privateKey) {
-    const key = hdkey.fromMasterSeed('');
-    key.privateKey = privateKey;
-    const publicKey = key.publicKey;
-    const step1 = publicKey;
-    const step2 = createHash('sha256').update(step1).digest();
-    const step3 = createHash('rmd160').update(step2).digest();
-    var step4 = Buffer.allocUnsafe(21+2);
-    step4.writeUInt8(0x4f, 0);
-    step4.writeUInt8(0x54, 1);
-    step4.writeUInt8(0x5b, 2);
-    step3.copy(step4, 3); //step4 now holds the extended RIPMD-160 result
-    const step9 = bs58check.encode(step4);
-    return step9;
-}
-
 function generate_paper() {
     var privateKey = document.querySelector("#pk-input").value.trim()
     const paperCode =  document.querySelector("#pc-input").value.trim()
+    const ed25519 = document.querySelector("#paper-ed25519").checked
     if (privateKey=='' && paperCode=='') {
         alert("Fill in one of Private Key or Paper Code")
         return
@@ -106,13 +92,13 @@ function generate_paper() {
         bip39info.innerHTML = '<form style="margin-top:20px; margin-bottom:20px; "><label for="words">Paper wallet code</label><br/><textarea name="words" style="width:100%; height:auto;">'+bip39.entropyToMnemonic(privateKey)+"</textarea></form>"
     }
 
-    const address = privkey_to_address(Buffer.from(privateKey, 'hex'))
-    //console.log(address)
-    const outMap= {"Private Key": privateKey, "Address": address}
+    const wallet = ed25519 ? privateKeyToEd25519Wallet(Buffer.from(privateKey, 'hex'))
+                           : privateKeyToEcdsaWallet(Buffer.from(privateKey, 'hex'))
+    const outMap= {"Private Key": privateKey, "Address": wallet.address}
     const wrapper = document.querySelector("#output")
     wrapper.innerHTML = mapToPaper(outMap)
     let qr = new QRCode(document.getElementById("qrcode_private"), getQRConfig2(privateKey, logo2))
-    let qr2 = new QRCode(document.getElementById("qrcode_address"), getQRConfig(address, logo))
+    let qr2 = new QRCode(document.getElementById("qrcode_address"), getQRConfig(wallet.address, logo))
     const img = document.getElementById("paperbg")
     lazyLoadImage(document.querySelector("#wallet_template").value, "wallet", img);
 }

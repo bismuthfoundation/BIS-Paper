@@ -22,6 +22,7 @@ Selectable wallet template, see the doc on how to submit your own templates to b
 
 ## Changelog
 
+- v0.3: Add ED25519 deterministic address generation support
 - v0.2: Support for Chameleon wallet seeds (After september 2019) 
 - v0.1: Initial commit, fully functional ECDSA support 
 
@@ -29,7 +30,6 @@ Selectable wallet template, see the doc on how to submit your own templates to b
 ## Roadmap
 
 - Improve GUI
-- Add support for ED25519 addresses
 - ...
 
 ## Donation address
@@ -39,4 +39,3 @@ Donations will help us maintain and improve this tool and other ones
 BIS Address
 Bis1ZQxwgiXemim9MSmPpVUP2ykBAJTy1ncea  
 ![](https://raw.githubusercontent.com/AngainorDev/BIS-Paper/main/angainor-bis.png)
-

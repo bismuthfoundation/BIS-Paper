@@ -31,6 +31,10 @@
               <b>Or</b>
            <label for="pc-input">Paper wallet code</label>
             <input type="TEXT" class="form-control" id="pc-input" placeholder="" aria-label="Paper Code" autocomplete="off" data-docs-version="4.3">
+           <br />
+           Key scheme<br/>
+            <input type="radio" id="paper-ecdsa" name="PaperScheme" value="ecdsa" checked><label for="paper-ecdsa">&nbsp;Ecdsa</label><br/>
+            <input type="radio" id="paper-ed25519" name="PaperScheme" value="ed25519"><label for="paper-ed25519">&nbsp;ED25519</label><br/>
            <label for="wallet_template">Wallet template</label>
             <select class="form-control" name="template" id="wallet_template">
             </select>
